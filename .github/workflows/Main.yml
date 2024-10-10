@@ -1,4 +1,4 @@
-name: Run Java Program
+name: Run Java Program on EC2 via SSM with Slack Notifications
 
 on:
   push:
@@ -6,33 +6,88 @@ on:
       - main
 
 jobs:
-  build-and-run:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'adopt'
-        java-version: '11'
-
-    - name: Compile Java Program
-      run: javac Main.java
-
-    - name: Run Java Program
-      run: java Main
-      continue-on-error: true
-
-    - name: Send Slack Notification on Failure
-      if: failure() # Only send notification if the above steps fail
+    - name: Set up AWS CLI
       run: |
-        SLACK_PAYLOAD=$(jq -n \
-          --arg text "Java program failed to execute on the runner. Please check the logs." \
-          '{text: $text}')
-        curl -X POST -H 'Content-type: application/json' \
-          --data "$SLACK_PAYLOAD" \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+        sudo apt-get update
+        sudo apt-get install -y awscli
+
+    - name: Run Java Program on EC2 via SSM
+      id: ssm-command
+      run: |
+        RESPONSE=$(aws ssm send-command \
+          --document-name "AWS-RunShellScript" \
+          --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
+          --parameters '{"commands":["cd /home/ubuntu/java-repo", "javac Main.java", "java Main"]}' \
+          --comment "Running Java Program via SSM" \
+          --region us-east-1 \
+          --query "Command.CommandId" \
+          --output text)
+        echo "SSM Command ID: $RESPONSE"
+        echo "command_id=$RESPONSE" >> $GITHUB_ENV
+
+    - name: Wait for Command to Complete
+      run: |
+        aws ssm wait command-executed \
+          --command-id ${{ env.command_id }} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }}
+
+    - name: Capture Command Output and Exit Code
+      run: |
+        OUTPUT=$(aws ssm get-command-invocation \
+          --command-id ${{ env.command_id }} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --query "StandardOutputContent" \
+          --output text)
+        ERROR_OUTPUT=$(aws ssm get-command-invocation \
+          --command-id ${{ env.command_id }} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --query "StandardErrorContent" \
+          --output text)
+        EXIT_CODE=$(aws ssm get-command-invocation \
+          --command-id ${{ env.command_id }} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --query "ResponseCode" \
+          --output text)
+        echo "Output: $OUTPUT"
+        echo "Error Output: $ERROR_OUTPUT"
+        echo "Exit Code: $EXIT_CODE"
+        echo "output=$OUTPUT" >> $GITHUB_ENV
+        echo "error_output=$ERROR_OUTPUT" >> $GITHUB_ENV
+        echo "exit_code=$EXIT_CODE" >> $GITHUB_ENV
+
+    - name: Send Success Notification to Slack
+      if: env.exit_code == '0'
+      uses: rtCamp/action-slack-notify@v2
+      with:
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        message: |
+          *Java Program Execution on EC2 via SSM Succeeded* :white_check_mark:
+          *Instance ID*: `${{ secrets.EC2_INSTANCE_ID }}`
+          *Output*: 
+          ```
+          ${{ env.output }}
+          ```
+          *Comment*: Program executed successfully!
+
+    - name: Send Failure Notification to Slack
+      if: env.exit_code != '0'
+      uses: rtCamp/action-slack-notify@v2
+      with:
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        message: |
+          *Java Program Execution on EC2 via SSM Failed* :x:
+          *Instance ID*: `${{ secrets.EC2_INSTANCE_ID }}`
+          *Error Output*: 
+          ```
+          ${{ env.error_output }}
+          ```
+          *Exit Code*: `${{ env.exit_code }}`
+          *Comment*: There was an error during execution. Check the logs for more details.
 
