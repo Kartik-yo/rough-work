@@ -20,8 +20,8 @@ jobs:
 
     - name: Configure AWS Credentials
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: AKIASOWTJBGDMO75WC5Z
+        AWS_SECRET_ACCESS_KEY: 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
       run: |
         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
@@ -32,7 +32,7 @@ jobs:
       run: |
         RESPONSE=$(aws ssm send-command \
           --document-name "AWS-RunShellScript" \
-          --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
+          --targets "Key=instanceids,Values=i-0ad49eaf9e2b7c431" \
           --parameters '{"commands":["cd /home/ubuntu/java-repo", "javac Main.java", "java Main"]}' \
           --comment "Running Java Program via SSM" \
           --region us-east-1 \
@@ -45,23 +45,23 @@ jobs:
       run: |
         aws ssm wait command-executed \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{ secrets.EC2_INSTANCE_ID }}
+          --instance-id i-0ad49eaf9e2b7c431
 
     - name: Capture Command Output and Exit Code
       run: |
         OUTPUT=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --instance-id i-0ad49eaf9e2b7c431 \
           --query "StandardOutputContent" \
           --output text)
         ERROR_OUTPUT=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --instance-id i-0ad49eaf9e2b7c431 \
           --query "StandardErrorContent" \
           --output text)
         EXIT_CODE=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
+          --instance-id i-0ad49eaf9e2b7c431 \
           --query "ResponseCode" \
           --output text)
         echo "Output: $OUTPUT"
@@ -78,8 +78,8 @@ jobs:
         webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
         message: |
           *Java Program Execution on EC2 via SSM Succeeded* :white_check_mark:
-          *Instance ID*: `${{ secrets.EC2_INSTANCE_ID }}`
-          *Output*: 
+          *Instance ID*: `i-0ad49eaf9e2b7c431`
+          *Output*:
           ```
           ${{ env.output }}
           ```
@@ -92,8 +92,8 @@ jobs:
         webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
         message: |
           *Java Program Execution on EC2 via SSM Failed* :x:
-          *Instance ID*: `${{ secrets.EC2_INSTANCE_ID }}`
-          *Error Output*: 
+          *Instance ID*: `i-0ad49eaf9e2b7c431`
+          *Error Output*:
           ```
           ${{ env.error_output }}
           ```
