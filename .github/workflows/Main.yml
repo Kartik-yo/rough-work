@@ -32,7 +32,7 @@ jobs:
       run: |
         RESPONSE=$(aws ssm send-command \
           --document-name "AWS-RunShellScript" \
-          --targets "Key=instanceids,Values=${{secrets.EC2_INSTANCE_ID}}" \
+          --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
           --parameters '{"commands":["cd /home/ubuntu/java-repo", "javac Main.java", "java Main"]}' \
           --comment "Running Java Program via SSM" \
           --region us-east-1 \
@@ -45,23 +45,23 @@ jobs:
       run: |
         aws ssm wait command-executed \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{secrets.EC2_INSTANCE_ID}} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
 
     - name: Capture Command Output and Exit Code
       run: |
         OUTPUT=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{secrets.EC2_INSTANCE_ID}} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
           --query "StandardOutputContent" \
           --output text)
         ERROR_OUTPUT=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{secrets.EC2_INSTANCE_ID}} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
           --query "StandardErrorContent" \
           --output text)
         EXIT_CODE=$(aws ssm get-command-invocation \
           --command-id ${{ env.command_id }} \
-          --instance-id ${{secrets.EC2_INSTANCE_ID}} \
+          --instance-id ${{ secrets.EC2_INSTANCE_ID }} \
           --query "ResponseCode" \
           --output text)
         echo "Output: $OUTPUT"
