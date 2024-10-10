@@ -41,11 +41,13 @@ jobs:
         echo "SSM Command ID: $RESPONSE"
         echo "command_id=$RESPONSE" >> $GITHUB_ENV
 
-    - name: Wait for Command to Complete
+    - name: Wait for Command Execution
+      id: wait-for-ssm
       run: |
-        aws ssm wait command-executed \
-          --command-id ${{ env.command_id }} \
-          --instance-id i-0ad49eaf9e2b7c431 \
+        command_id=${{ env.command_id }}
+        echo "Waiting for command execution..."
+        aws ssm wait command-executed --command-id $command_id --instance-id i-0ad49eaf9e2b7c431
+
 
     - name: Capture Command Output and Exit Code
       run: |
