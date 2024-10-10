@@ -32,7 +32,7 @@ jobs:
       run: |
         RESPONSE=$(aws ssm send-command \
           --document-name "AWS-RunShellScript" \
-          --targets "Key=instanceids,Values=${{ secrets.EC2_INSTANCE_ID }}" \
+          --targets "Key=instanceids,Values=i-0ad49eaf9e2b7c431" \
           --parameters '{"commands":["cd /home/ubuntu/java-repo", "javac Main.java", "java Main"]}' \
           --comment "Running Java Program via SSM" \
           --region us-east-1 \
