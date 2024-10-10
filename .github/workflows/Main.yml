@@ -45,6 +45,7 @@ jobs:
       if: success()
       uses: dawidd6/action-send-mail@v3
       with:
+        from: kartikmesh2406@gmail.com
         to: kartikmesh2406@gmail.com
         subject: "Java Program Execution on EC2 via SSM Succeeded"
         body: |
@@ -56,6 +57,7 @@ jobs:
       if: failure()
       uses: dawidd6/action-send-mail@v3
       with:
+        from: kartikmesh2406@gmail.com
         to: kartikmesh2406@gmail.com
         subject: "Java Program Execution on EC2 via SSM Failed"
         body: |
