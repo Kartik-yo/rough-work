@@ -1,0 +1,38 @@
+name: Run Java Program
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
+    - name: Compile Java Program
+      run: javac Main.java
+
+    - name: Run Java Program
+      run: java Main
+      continue-on-error: true
+
+    - name: Send Slack Notification on Failure
+      if: failure() # Only send notification if the above steps fail
+      run: |
+        SLACK_PAYLOAD=$(jq -n \
+          --arg text "Java program failed to execute on the runner. Please check the logs." \
+          '{text: $text}')
+        curl -X POST -H 'Content-type: application/json' \
+          --data "$SLACK_PAYLOAD" \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
