@@ -41,30 +41,24 @@ jobs:
         echo "SSM Command ID: $RESPONSE"
         echo "command_id=$RESPONSE" >> $GITHUB_ENV
 
-    - name: Send Success Notification to Slack
-      if: env.exit_code == '0'
-      uses: rtCamp/action-slack-notify@v2
+    - name: Notify via Email on Success
+      if: success()
+      uses: dawidd6/action-send-mail@v3
       with:
-        webhook_url: https://hooks.slack.com/services/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
-        message: |
-          *Java Program Execution on EC2 via SSM Succeeded* :white_check_mark:
-          *Instance ID*: `i-0ad49eaf9e2b7c431`
-          *Output*:
-          ```
-          ${{ env.output }}
-          ```
-          *Comment*: Program executed successfully!
+        to: kartikmesh2406@gmail.com
+        subject: "Java Program Execution on EC2 via SSM Succeeded"
+        body: |
+          Java Program Execution on EC2 via SSM Succeeded ✅
+          Instance ID: i-0ad49eaf9e2b7c431
+          Output: Program executed successfully!
 
-    - name: Send Failure Notification to Slack
-      if: env.exit_code != '0'
-      uses: rtCamp/action-slack-notify@v2
+    - name: Notify via Email on Failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
       with:
-        webhook_url: https://hooks.slack.com/services/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
-        message: |
-          *Java Program Execution on EC2 via SSM Failed* :x:
-          *Instance ID*: `i-0ad49eaf9e2b7c431`
-          *Error Output*:
-          ```
-          ${{ env.error_output }}
-          ```
-          *Exit Code*: `${{ env.exit_code }}`
+        to: kartikmesh2406@gmail.com
+        subject: "Java Program Execution on EC2 via SSM Failed"
+        body: |
+          Java Program Execution on EC2 via SSM Failed ❌
+          Instance ID: i-0ad49eaf9e2b7c431
+          Logs: Unable to retrieve logs.
