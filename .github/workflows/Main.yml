@@ -45,7 +45,7 @@ jobs:
       if: env.exit_code == '0'
       uses: rtCamp/action-slack-notify@v2
       with:
-        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook_url: https://hooks.slack.com/services/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
         message: |
           *Java Program Execution on EC2 via SSM Succeeded* :white_check_mark:
           *Instance ID*: `i-0ad49eaf9e2b7c431`
@@ -59,7 +59,7 @@ jobs:
       if: env.exit_code != '0'
       uses: rtCamp/action-slack-notify@v2
       with:
-        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook_url: https://hooks.slack.com/services/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
         message: |
           *Java Program Execution on EC2 via SSM Failed* :x:
           *Instance ID*: `i-0ad49eaf9e2b7c431`
