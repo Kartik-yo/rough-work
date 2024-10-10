@@ -41,26 +41,22 @@ jobs:
         echo "SSM Command ID: $RESPONSE"
         echo "command_id=$RESPONSE" >> $GITHUB_ENV
 
-    - name: Notify via Email on Success
+    - name: Notify Slack on Success
       if: success()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        from: kartikmesh2406@gmail.com
-        to: kartikmesh2406@gmail.com
-        subject: "Java Program Execution on EC2 via SSM Succeeded"
-        body: |
-          Java Program Execution on EC2 via SSM Succeeded ✅
-          Instance ID: i-0ad49eaf9e2b7c431
-          Output: Program executed successfully!
+      run: |
+        curl -X POST -H 'Content-Type: application/json' \
+        -H "Authorization: Bearer RHCDXUctAk5h45KrqueVsX31" \
+        --data '{"channel": "'"D07N7BRADJ4'"', "text": "Java Program Execution on EC2 via SSM Succeeded :white_check_mark: \nInstance ID: '"i-0ad49eaf9e2b7c431"' \nOutput: Program executed successfully!"}' \
+        https://slack.com/api/chat.postMessage
 
-    - name: Notify via Email on Failure
+    - name: Notify Slack on Failure
       if: failure()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        from: kartikmesh2406@gmail.com
-        to: kartikmesh2406@gmail.com
-        subject: "Java Program Execution on EC2 via SSM Failed"
-        body: |
-          Java Program Execution on EC2 via SSM Failed ❌
-          Instance ID: i-0ad49eaf9e2b7c431
-          Logs: Unable to retrieve logs.
+      run: |
+        command_id=${{ env.command_id }}
+        echo "Command execution failed. Attempting to retrieve logs..."
+        logs=$(aws ssm list-command-invocations --command-id $command_id --details --query "CommandInvocations[0].CommandPlugins[0].Output" --output text || echo "Unable to retrieve logs.")
+        curl -X POST -H 'Content-Type: application/json' \
+        -H "Authorization: Bearer RHCDXUctAk5h45KrqueVsX31" \
+        --data '{"channel": "'"D07N7BRADJ4'"', "text": "Java Program Execution on EC2 via SSM Failed :x: \nInstance ID: '"i-0ad49eaf9e2b7c431"' \nLogs: '"$logs"'"}' \
+        https://slack.com/api/chat.postMessage
+        
