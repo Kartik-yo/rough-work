@@ -1,10 +1,14 @@
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, GitHub Actions!");
-
-        // Simulating an error for testing purposes
-        int result = 10 / 0;  // This will throw an ArithmeticException (division by zero)
-
-        System.out.println("Result: " + result);
+        try (FileWriter writer = new FileWriter("/home/ubuntu/java-repo/output.txt")) {
+            // Your logic here
+            writer.write("Program executed successfully!\n");
+            // If there are errors, write them to the file as well
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
