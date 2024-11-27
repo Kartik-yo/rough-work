@@ -1,0 +1,18 @@
+name: Trigger Repo B Workflow
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to main branch
+
+jobs:
+  trigger-repo-b:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Repo B Workflow
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          repository: user/Repo-B  # Replace 'user' with your GitHub username
+         # token: ${{ secrets.GITHUB_TOKEN }}  # Uses GitHub token for authentication
+          event-type: trigger-workflow  # Custom event name to identify the trigger
