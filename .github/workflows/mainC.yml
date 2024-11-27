@@ -13,6 +13,6 @@ jobs:
       - name: Trigger Repo B Workflow
         uses: peter-evans/repository-dispatch@v1
         with:
-          repository: user/Repo-B  # Replace 'user' with your GitHub username
+          repository: Kartik-yo/rough-2  # Replace 'user' with your GitHub username
          # token: ${{ secrets.GITHUB_TOKEN }}  # Uses GitHub token for authentication
           event-type: trigger-workflow  # Custom event name to identify the trigger
