@@ -1,0 +1,16 @@
+# .github/workflows/deploy.yml
+name: Deploy Application
+on:
+  workflow_run:
+    workflows:
+      - Build Application  # Reference the first workflow's name
+    types:
+      - completed  # Trigger only after the first workflow successfully completes
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Deploy to server
+        run: echo "file deployed"
